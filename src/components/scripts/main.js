@@ -89,7 +89,10 @@ function showPopUp(e, near) {
 function createPoetListItem(name, src, id) {
   let listItem = document.createElement("li");
   listItem.classList.add("listPoets__item", "li_item");
-  listItem.textContent = name;
+  let textWrap = document.createElement('p');
+  textWrap.classList.add('listPoets__text');
+  textWrap.textContent = name;
+  listItem.append(textWrap);
   let listIcon = document.createElement("img");
   listIcon.setAttribute("src", src);
   listIcon.setAttribute("width", 50);
@@ -103,7 +106,52 @@ function createPoetListItem(name, src, id) {
   return listItem;
 }
 
+function setSorting(type){
+  console.log('setSorting',type);
+  document.querySelector('#listPoets').remove();
+  if (type === 'от А до Я'){
+    showListOfPoets(data.toSorted(function(a,b){ 
+      let nameA = a.name.toLowerCase(), nameB = b.name.toLowerCase();
+      return nameA.localeCompare(nameB, 'ru');
+  }));
+  }else if(type === 'от Я до А') {
+    showListOfPoets(data.toSorted(function(a,b){ 
+      let nameA = a.name.toLowerCase(), nameB = b.name.toLowerCase();
+      return nameB.localeCompare(nameA, 'ru');
+  }));
+  }else{
+    showListOfPoets(data);
+  }
+
+
+}
+
+function createSortingBlock(){
+  let sortWrap = document.createElement('div');
+  sortWrap.classList.add("sorting_block");
+  let select = document.createElement("select");
+
+  let opt = document.createElement('option');
+  opt.textContent = 'Без сортировки';
+  select.append(opt);
+  opt = document.createElement('option');
+  opt.textContent = 'от А до Я';
+  select.append(opt);
+  opt = document.createElement('option');
+  opt.textContent = 'от Я до А';
+  select.append(opt);
+
+  select.addEventListener('change',function(e){
+    console.log(this.value);
+    setSorting(this.value);
+  })
+  return select;
+}
+
 function showListOfPoets(allPoetsData) {
+//TODO добавь сортировку и UI
+ 
+
   console.log("data", allPoetsData);
   let listPoets = document.createElement("ul");
   listPoets.classList.add("listPoets", "grid");
@@ -113,8 +161,9 @@ function showListOfPoets(allPoetsData) {
     const { name, src, id } = item;
     listPoets.append(createPoetListItem(name, src, id));
   });
+let parent = document.querySelector("#list_section");
+parent.append(listPoets);
 
-  document.querySelector("#list_section").append(listPoets);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -135,6 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .addEventListener("click", function () {
       if (!list_section.childNodes.length) {
         showListOfPoets(data);
+        list_section.prepend(createSortingBlock());
       }
      
       poets_section.innerHTML = '';
