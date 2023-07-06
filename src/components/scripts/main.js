@@ -1,71 +1,118 @@
 import data from "./data";
-console.log("history", history);
-function addCommentParagraph(text) {
-  console.log("=- addCommentParagraph", comments);
-  let commentParagraph = document.createElement("li");
-  commentParagraph.textContent = text;
-  return commentParagraph;
+
+function createRemoveBtn(id) {
+  let removeComment = document.createElement("span");
+  removeComment.textContent = "X";
+  removeComment.setAttribute("data-remove-id", id);
+  removeComment.classList.add("removeBtn");
+  removeComment.addEventListener("click", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    let currPoet = e.target.closest(".poet__wrapper");
+    let currPoetId = currPoet.dataset.id;
+    let parentComment = e.target.closest(".comment_text");
+    let parentCommentId = parentComment.dataset.commentId;
+    let commentText = parentComment.textContent;
+    let oldStorade = [];
+    if (localStorage != undefined && localStorage != null) {
+      oldStorade = JSON.parse(localStorage[currPoetId]);
+    }
+    let newStorade = oldStorade.filter(
+      (elem) => elem.comment_id != parentCommentId
+    );
+    localStorage.setItem(currPoetId, JSON.stringify(newStorade));
+
+    parentComment.remove();
+  });
+  return removeComment;
+}
+
+function addCommentElemLi(text, id, remove_btn_id) {
+  let CommentElem = document.createElement("li");
+  CommentElem.setAttribute("data-comment-id", id);
+  CommentElem.classList.add("comment_text");
+  CommentElem.textContent = text;
+  CommentElem.append(createRemoveBtn(remove_btn_id));
+  return CommentElem;
 }
 function addCommentBlock(commentsToBlock) {
-  console.log("2 addCommentBlock", commentsToBlock);
-  // debugger;
   let commentTemplate = document.querySelector("#comment_template");
   let commentParent = commentTemplate.content.cloneNode(true);
-  if (
-    commentsToBlock != null &&
-    commentsToBlock != undefined &&
-    Array.isArray(commentsToBlock) &&
-    commentsToBlock.length > 0
-  ) {
-    // commentParent.querySelector('#comment_template').remove();
-    // return '';
+
+  function addCommentInnerFunc(e, thisCopy) {
+    let currPoet = e.target.closest(".poet__wrapper");
+    let currPoetId = currPoet.dataset.id;
+    currPoet
+      .querySelector(".comment_list")
+      .append(
+        addCommentElemLi(
+          thisCopy.value,
+          `${currPoetId}_${thisCopy.value}`,
+          `${currPoetId}_${thisCopy.value}=removeBTN`
+        )
+      );
+
+    if (localStorage.getItem(currPoetId) != null) {
+      let savedComments = localStorage.getItem(currPoetId);
+      let parsedComments = JSON.parse(savedComments);
+      parsedComments.push({
+        comment_text: thisCopy.value,
+        comment_id: `${currPoetId}_${thisCopy.value}`,
+        remove_btn_id: `${currPoetId}_${thisCopy.value}=removeBTN`,
+      });
+      localStorage.setItem(currPoetId, JSON.stringify(parsedComments));
+    } else {
+      localStorage.setItem(
+        currPoetId,
+        JSON.stringify([
+          {
+            comment_text: thisCopy.value,
+            comment_id: `${currPoetId}_${thisCopy.value}`,
+            remove_btn_id: `${currPoetId}_${thisCopy.value}=removeBTN`,
+          },
+        ])
+      );
+    }
+
+    e.target.value = "";
   }
+
+  // по  keyup || blur Добавляем комментарий
   commentParent
     .querySelector("textarea")
     .addEventListener("blur", function (e) {
-      console.log("blur")
-      let currPoet = e.target.closest(".poet__wrapper");
-      let currPoetId = currPoet.dataset.id;
-      currPoet
-        .querySelector(".comment_list")
-        .append(addCommentParagraph(this.value));
-
-      if (localStorage.getItem(currPoetId) != null) {
-        let savedComments = localStorage.getItem(currPoetId);
-        let parsedComments = JSON.parse(savedComments);
-        parsedComments.push(this.value);
-        localStorage.setItem(currPoetId, JSON.stringify(parsedComments));
-      } else {
-        localStorage.setItem(currPoetId, JSON.stringify([this.value]));
+      if (this.value.length > 0 && this.value.trim() != '') {
+        addCommentInnerFunc(e, this);
       }
-
-      e.target.value = "";
     });
-    
-    console.log("перед if ==>", commentsToBlock);
+
+  commentParent
+    .querySelector("textarea")
+    .addEventListener("keyup", function (event) {
+      if (event.keyCode == 13 && this.value.trim() != '') {
+        addCommentInnerFunc(event, this);
+      }
+    });
+
+  //keyup || blur end
   if (
     commentsToBlock != null &&
     commentsToBlock != undefined &&
     Array.isArray(commentsToBlock) &&
     commentsToBlock.length > 0
   ) {
-    console.log("was also here ", commentsToBlock);
     commentsToBlock.forEach((item) => {
-      let comment = document.createElement("li");
-      comment.classList.add("comment_text");
-      comment.textContent = item;
-      commentParent.querySelector(".comment_list").append(comment);
+      let commentLi = document.createElement("li");
+      commentLi.classList.add("comment_text");
+      commentLi.setAttribute("data-comment-id", item.comment_id);
+      commentLi.textContent = item.comment_text;
+      commentLi.append(createRemoveBtn(item.remove_btn_id));
+      commentParent.querySelector(".comment_list").append(commentLi);
     });
-  } else if ( typeof(commentsToBlock) == 'string' ){
-    console.log('----------------------------------',document.querySelector('#popap__poet_block'));
-    // document.querySelector('#popap__poet_block .comment_block:nth-child(2)').remove();
-  }
-  else{
-    console.log("tyt", commentsToBlock);
+  } else {
     let summary = commentParent.querySelector("summary");
     summary.textContent = "Дадаць каментарыi";
     summary.addEventListener("click", function onceChangeTitle(e) {
-      console.log("onceChangeTitle");
       summary.textContent = "Каментарыi";
       summary.removeEventListener("click", onceChangeTitle);
     });
@@ -74,7 +121,6 @@ function addCommentBlock(commentsToBlock) {
   return commentParent;
 }
 function createPoetBlock(name, descr, link, id) {
-  console.log("1 createPoetBlock");
   name = !name ? "Name not found" : name;
   descr = !descr ? "Description not found" : descr;
   link = !link ? "#Link_not_found" : link;
@@ -104,7 +150,6 @@ function createPoetBlock(name, descr, link, id) {
   poetDescr.textContent = descr;
   contentWrap.append(poetName, poetDescr);
   if (localStorage.getItem(id) != null) {
-    console.log("Добавляем блок с комментариями");
     contentWrap.append(addCommentBlock(JSON.parse(localStorage.getItem(id))));
   }
 
@@ -130,7 +175,6 @@ function showMainPoetsBlock(allPoetsData) {
 }
 
 function showPopUp(e, near, comments) {
-  console.log("3 showPopUp", comments);
   let currPoetData = data.find(
     (item) => item.id == e.target.closest(near).dataset.id
   );
@@ -138,15 +182,15 @@ function showPopUp(e, near, comments) {
   let popap = document.createElement("div");
   popap.classList.add("popap_wrap");
   popap.setAttribute("id", "popap_window");
-  let currPoet = createPoetBlock(name, description, src, id, [
-    "frist coomm",
-    "second",
-  ]);
-  currPoet.setAttribute("id", "popap__poet_block");
 
-  currPoet
-    .querySelector(".poet_content__wrapper")
-    .append(addCommentBlock(comments));
+  let currPoet = createPoetBlock(name, description, src, id, null);
+
+  currPoet.setAttribute("id", "popap__poet_block");
+  if (currPoet.querySelector(".comment_details") == null) {
+    currPoet
+      .querySelector(".poet_content__wrapper")
+      .append(addCommentBlock(comments));
+  }
 
   popap.append(currPoet);
 
@@ -177,7 +221,6 @@ function showPopUp(e, near, comments) {
 }
 
 function createPoetListItem(name, src, id) {
-  console.log("-1 createPoetListItem");
   let listItem = document.createElement("li");
   listItem.classList.add("listPoets__item", "li_item");
   let textWrap = document.createElement("p");
@@ -188,12 +231,12 @@ function createPoetListItem(name, src, id) {
   listIcon.setAttribute("src", src);
   listIcon.setAttribute("width", 50);
   listIcon.setAttribute("height", 50);
+  listIcon.setAttribute("style", "border-radius: 50%");
   listItem.prepend(listIcon);
   listItem.setAttribute("data-id", id);
   listItem.addEventListener("click", (e) => {
     e.stopPropagation();
-    //trouble is here!
-    showPopUp(e, ".listPoets__item",localStorage.getItem(id));
+    showPopUp(e, ".listPoets__item", JSON.parse(localStorage.getItem(id)));
   });
   return listItem;
 }
@@ -244,7 +287,6 @@ function createSortingBlock() {
 }
 
 function showListOfPoets(allPoetsData) {
-  console.log("0 showListOfPoets");
   let listPoets = document.createElement("ul");
   listPoets.classList.add("listPoets", "grid");
   listPoets.setAttribute("id", "listPoets");
