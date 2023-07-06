@@ -5,8 +5,6 @@
   <body>
     <header>
       <ul class="header_links">
-        <li class="header_link">About us</li>
-        <li class="header_link">Contacts</li>
         <li class="header_link" id="list_section__link">List of Poets</li>
         <li class="header_link" id="poets_section__link">Бiблiятэка</li>
       </ul>
@@ -19,5 +17,12 @@
     <footer>
 
     </footer>
+    <template id="comment_template">
+      <details class="comment_block" >
+        <summary class="comment_summary" onclick=" function stopBubling(e){e.stopPropagation()}">Каментарыi из template</summary>
+        <ul class="comment_list"></ul>
+        <textarea type="textarea" class="comment_textarea"  placeholder="Дадайце ваш каментарый..." ></textarea>
+      </details>  
+    </template>   
   </body>
 </html>
