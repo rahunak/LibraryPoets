@@ -1,0 +1,29 @@
+<html>
+  <head>
+    <title>Library of Poets</title>
+    <link rel="icon" type="image/x-icon" href="1f1d5ded65ac8d0c8e43.ico">
+  <script defer src="main.bundle.js"></script></head>
+  <body>
+    <header>
+      <ul class="header_links">
+        <li class="header_link" id="list_section__link">List of Poets</li>
+        <li class="header_link" id="poets_section__link">Бiблiятэка</li>
+      </ul>
+    </header>
+    <main class="main_wrapper">
+      <h1 class="main_title">Выдатныя асобы Беларусi</h1>
+   <section id="poets_section" class="poets_section"></section>
+   <section id="list_section" class="list_section"></section>
+    </main>
+    <footer>
+
+    </footer>
+    <template id="comment_template">
+      <details class="comment_details" >
+        <summary class="comment_summary" onclick=" function stopBubling(e){e.stopPropagation()}">Каментарыi</summary>
+        <ul class="comment_list"></ul>
+        <textarea type="textarea" class="comment_textarea"  placeholder="Дадайце ваш каментарый..." ></textarea>
+      </details>  
+    </template>   
+  </body>
+</html>
